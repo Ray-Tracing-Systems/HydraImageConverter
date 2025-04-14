@@ -9,6 +9,8 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+build_cpp/
+build_python/
 develop-eggs/
 dist/
 downloads/
@@ -172,5 +174,5 @@ cython_debug/
 .DS_Store
 
 
-
+*.png
 

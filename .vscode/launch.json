@@ -1,0 +1,59 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run C++ (Debug)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build_cpp/Debug/main",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Build C++ (Debug)",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Run C++ (Release)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build_cpp/Release/main",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Build C++ (Release)",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug Python Bindings",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/test_binding.py",
+            "console": "integratedTerminal",
+            "pythonPath": "${command:python.interpreterPath}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build_python/Debug"
+            },
+            "preLaunchTask": "Build Python Bindings (Debug)"
+        }
+    ]
+}

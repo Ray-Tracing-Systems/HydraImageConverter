@@ -1,5 +1,3 @@
-//image_loader.h
-
 #include <string>
 #include <cstdint>
 #include <vector>
@@ -23,7 +21,7 @@ struct ImageFileInfo
 };
 
 ImageFileInfo getImageInfo(const std::string& a_filename);
-std::vector<unsigned char> loadImageLDR(const ImageFileInfo& info);
+std::vector<unsigned char> loadImageLDR(const ImageFileInfo& info, bool flipVertical = false);
 std::vector<float> loadImageHDR(const ImageFileInfo& info);
 
 bool saveImageLDR(const std::string& a_filename, const std::vector<unsigned char> &a_data,
@@ -32,3 +30,5 @@ bool saveImageLDR(const std::string& a_filename, const std::vector<unsigned char
 bool saveImageHDR(const std::string& a_filename, const std::vector<float> &a_data,
   int width, int height, int channels);
 
+void flipImageVertically(std::vector<unsigned char>& data, int width, int height, int channels);
+std::vector<unsigned char> loadImage4ub(const std::string &filename, bool flipVertical = false);

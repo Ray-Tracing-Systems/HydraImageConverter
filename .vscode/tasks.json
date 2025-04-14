@@ -1,0 +1,81 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		// C++ Debug Build
+		{
+			"label": "Build C++ (Debug)",
+			"type": "shell",
+			"command": "./build_c++_debug.sh",
+			"group": "build",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"detail": "Debug build for C++ code",
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			}
+		},
+		// C++ Release Build
+		{
+			"label": "Build C++ (Release)",
+			"type": "shell",
+			"command": "./02_build_c++_release.sh",
+			"group": "build",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"detail": "Release build for C++ code",
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			}
+		},
+		// Python Debug Build
+		{
+			"label": "Build Python Bindings (Debug)",
+			"type": "shell",
+			"command": "cmake",
+			"args": [
+				"-B",
+				"build_python/Debug",
+				"-DCMAKE_BUILD_TYPE=Debug",
+				"-DBUILD_PYTHON_BINDINGS=ON",
+				"."
+			],
+			"group": "build",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"detail": "Debug build for Python bindings"
+		},
+		// Python Release Build
+		{
+			"label": "Build Python Bindings (Release)",
+			"type": "shell",
+			"command": "cmake",
+			"args": [
+				"-B",
+				"build_python/Release",
+				"-DCMAKE_BUILD_TYPE=Release",
+				"-DBUILD_PYTHON_BINDINGS=ON",
+				"."
+			],
+			"group": "build",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"detail": "Release build for Python bindings"
+		},
+		// Test Tasks		
+		{
+			"label": "Run Python Tests",
+			"type": "shell",
+			"command": "python3 test_binding.py",
+			"group": "test",
+			"dependsOn": [
+				"Build Python Bindings (Release)"
+			]
+		}
+	]
+}
