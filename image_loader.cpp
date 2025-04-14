@@ -99,6 +99,19 @@ void flipImageVertically(std::vector<unsigned char>& data, int width, int height
     }
 }
 
+void flipImageVertically(std::vector<float>& data, int width, int height, int channels) {
+    if (data.empty() || width <= 0 || height <= 0) return;
+    
+    const int rowSize = width * channels;
+    std::vector<float> tempRow(rowSize);
+    
+    for (int y = 0; y < height/2; y++) {
+        float* top = data.data() + y * rowSize;
+        float* bottom = data.data() + (height - 1 - y) * rowSize;
+        std::swap_ranges(top, top + rowSize, bottom);
+    }
+}
+
 std::vector<unsigned char> loadImage4ub(const std::string &filename, bool flipVertical)
 {
     std::ifstream infile(filename, std::ios::binary);
@@ -162,6 +175,30 @@ std::vector<unsigned char> loadImageLDR(const ImageFileInfo& info, bool flipVert
     }
 }
 
+std::vector<float> loadImage4f(const std::string &filename)
+{
+    std::ifstream infile(filename, std::ios::binary);
+    std::vector<float> result;
+    if (infile.good())
+    {
+        int32_t w, h;
+        infile.read((char*)&w, sizeof(int));
+        infile.read((char*)&h, sizeof(int));
+
+        if (w > MAX_IMAGE_DIMENSION || h > MAX_IMAGE_DIMENSION) {
+            std::cerr << "Error: Image dimensions exceed maximum allowed size for " << filename << std::endl;
+            return result;
+        }
+
+        result.resize(w * h * 4);
+        infile.read((char*)result.data(), w * h * 4 * sizeof(float));
+        
+        // Flip image vertically to match other formats
+        flipImageVertically(result, w, h, 4);
+    }
+    return result;
+}
+
 std::vector<float> loadImageHDR(const ImageFileInfo& info)
 {
     int w, h, channels, req_channels;
@@ -170,6 +207,10 @@ std::vector<float> loadImageHDR(const ImageFileInfo& info)
     else
         req_channels = info.channels;
 
+    if (guessFormatFromExtension(info.path) == IMG_IMAGE4F) {
+        return loadImage4f(info.path);
+    }
+    
     float* pixels = stbi_loadf(info.path.c_str(), &w, &h, &channels, req_channels);
     if (!pixels) {
         std::cerr << "Error: Failed to load HDR image data for " << info.path << std::endl;

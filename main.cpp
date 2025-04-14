@@ -5,6 +5,8 @@
 #include <cerrno>
 #include "image_loader.h"
 
+TEX_FORMAT guessFormatFromExtension(const std::string &filename);
+
 namespace fs = std::filesystem;
 
 bool hasValidExtension(const fs::path& filePath) {
@@ -16,7 +18,6 @@ std::string findReferenceImage(const std::string& imagePath) {
     fs::path inputPath(imagePath);
     fs::path refPath = inputPath.parent_path() / (inputPath.stem().string() + "_ref.png");
     
-    std::cerr << "Input path: " << imagePath << "\n";    
     if (!fs::exists(refPath))
     {
         std::cerr << "Reference " << refPath << " not found.\n";        
@@ -50,10 +51,26 @@ void processImage(const std::string& inputPath) {
     std::cerr << "Dimensions: " << info.width << "x" << info.height 
               << " Channels: " << info.channels << std::endl;
 
-    auto image = loadImageLDR(info, true);
-    if (image.empty()) {
-        std::cerr << "Error: Failed to load image data" << std::endl;
-        return;
+    std::vector<unsigned char> image;
+    std::vector<float> hdrImage;
+    
+    if (guessFormatFromExtension(inputPath) == IMG_IMAGE4F || guessFormatFromExtension(inputPath) == IMG_COMMON_HDR) {
+        hdrImage = loadImageHDR(info);
+        if (hdrImage.empty()) {
+            std::cerr << "Error: Failed to load HDR image data" << std::endl;
+            return;
+        }
+        // Convert HDR to LDR for PNG output
+        image.resize(hdrImage.size());
+        for (size_t i = 0; i < hdrImage.size(); i++) {
+            image[i] = static_cast<unsigned char>(std::min(255.0f, std::max(0.0f, hdrImage[i] * 255.0f)));
+        }
+    } else {
+        image = loadImageLDR(info, true);
+        if (image.empty()) {
+            std::cerr << "Error: Failed to load image data" << std::endl;
+            return;
+        }
     }
 
     if (!saveImageLDR(outputPath.string(), image, info.width, info.height, info.channels)) {

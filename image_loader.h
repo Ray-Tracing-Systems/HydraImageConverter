@@ -22,6 +22,7 @@ struct ImageFileInfo
 
 ImageFileInfo getImageInfo(const std::string& a_filename);
 std::vector<unsigned char> loadImageLDR(const ImageFileInfo& info, bool flipVertical = false);
+std::vector<float> loadImage4f(const std::string &filename);
 std::vector<float> loadImageHDR(const ImageFileInfo& info);
 
 bool saveImageLDR(const std::string& a_filename, const std::vector<unsigned char> &a_data,
