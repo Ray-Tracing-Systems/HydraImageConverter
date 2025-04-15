@@ -24,6 +24,7 @@ cmake -B "${BUILD_DIR}" \
     -DPython_EXECUTABLE="${PYTHON_EXECUTABLE}" \
     -DPython_INCLUDE_DIR="${PYTHON_INCLUDE_DIR}" \
     -DPython_LIBRARY="${PYTHON_LIBRARY}" \
+    -DBUILD_PYTHON_BINDINGS=ON \
     -DCMAKE_BUILD_TYPE=Release
 
 # Build
@@ -31,6 +32,7 @@ echo "Starting build..."
 if cmake --build "${BUILD_DIR}" -- -j$(nproc); then
     echo "Build successful!"
     
+    rm -rf hydra_image_loader
     mkdir hydra_image_loader
     cd hydra_image_loader
     touch __init__.py

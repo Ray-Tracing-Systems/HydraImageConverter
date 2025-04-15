@@ -9,7 +9,6 @@ TEX_FORMAT getFormatFromExtension(const std::string &filename);
 
 namespace fs = std::filesystem;
 
-inline static float clamp(float u, float a, float b) { return std::min(std::max(a, u), b); }
 
 bool hasValidExtension(const fs::path& filePath) {
     const std::string ext = filePath.extension().string();
@@ -55,7 +54,6 @@ void processImage(const std::string& inputPath) {
               << " Channels: " << info.channels << std::endl;
 
     std::vector<unsigned char> image_ldr;
-    std::vector<float> hdrImage;
     
     auto format = getFormatFromExtension(inputPath);
 
@@ -69,27 +67,9 @@ void processImage(const std::string& inputPath) {
     }
     else if (format == IMG_IMAGE4F)
     {
-        hdrImage = loadImage4f(info.path, info.channels);
-        if (hdrImage.empty()) {
-            std::cerr << "Error: Failed to load HDR image data" << std::endl;
-            return;
-        }
-
-        image_ldr.resize(info.width * info.height * 4);
-
-        for (size_t srcIdx = 0, dstIdx = 0; srcIdx < hdrImage.size(); srcIdx += info.channels, dstIdx += 4) 
-        {
-            // RGB → RGBA
-            const float r = clamp(hdrImage[srcIdx], 0.0f, 1.0f);
-            const float g = clamp(hdrImage[srcIdx + 1], 0.0f, 1.0f);
-            const float b = clamp(hdrImage[srcIdx + 2], 0.0f, 1.0f);
-
-            image_ldr[dstIdx]   = static_cast<unsigned char>(r * 255.0f); // R
-            image_ldr[dstIdx+1] = static_cast<unsigned char>(g * 255.0f); // G
-            image_ldr[dstIdx+2] = static_cast<unsigned char>(b * 255.0f); // B
-            image_ldr[dstIdx+3] = 255; // Альфа    
-            info.channels = 4;           
-        }   
+        image_ldr = image4fToUchar(info.path, info.channels);
+        if (image_ldr.empty())             
+            return;        
     }
 
     if (!saveImageLDR(outputPath.string(), image_ldr, info.width, info.height, info.channels)) {

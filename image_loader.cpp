@@ -1,4 +1,3 @@
-#include "image_loader.h"
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -11,8 +10,12 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../stb/stb_image_write.h"
 
+#include "image_loader.h"
 
 ////////////////////////////////////////////////////////////////////////////
+
+float clamp(float u, float a, float b) { return std::min(std::max(a, u), b); }
+
 
 TEX_FORMAT getFormatFromExtension(const std::string &filename)
 {
@@ -145,9 +148,11 @@ std::vector<unsigned char> loadImage4ub(const std::string &filename)
     return result;
 }
 
-std::vector<float> loadImage4f(const std::string &filename, int& outChannels) {
+std::vector<unsigned char> image4fToUchar(const std::string &filename, int& outChannels) {
     std::ifstream infile(filename, std::ios::binary);
-    std::vector<float> result;
+    std::vector<float> result_float;
+    std::vector<unsigned char> result;
+
 
     if (infile.good()) 
     {
@@ -155,14 +160,49 @@ std::vector<float> loadImage4f(const std::string &filename, int& outChannels) {
         infile.read((char*)&w, sizeof(uint32_t));
         infile.read((char*)&h, sizeof(uint32_t));
 
-        result.resize(w * h * outChannels);
-        infile.read((char*)result.data(), w * h * outChannels * sizeof(float));
+        if (outChannels == 4)
+        {
+            result_float.resize(w * h * 4);
+            infile.read((char*)result_float.data(), w * h * 4 * sizeof(float));
 
-        if (!infile) {
-            std::cerr << "Ошибка чтения данных из файла!" << std::endl;
-            return result;
+            if (!infile) {
+                std::cerr << "Error reading data from a file!" << std::endl;
+                return result;
+            }
         }
-        flipImageVertically(result, w, h, outChannels);
+        else if (outChannels == 3)
+        {   
+            // It is not possible to save the 3-channel float4. Perhaps this is a format bug.
+            
+            std::cerr << "Error: image4 should contain 4 channels, now 3" << std::endl;
+            outChannels = 4;            
+            return result;
+            
+            
+            // std::vector<float> result3(w * h * 3);
+            // infile.read((char*)result3.data(), w * h * 3 * sizeof(float));
+            
+            // result.resize(w * h * 4);
+            
+            // for (size_t srcIdx = 0, dstIdx = 0; srcIdx < result3.size(); srcIdx += 3, dstIdx += 4) 
+            // {
+                //     // RGB → RGBA
+                //     const float r = clamp(result3[srcIdx], 0.0f, 1.0f);
+                //     const float g = clamp(result3[srcIdx + 1], 0.0f, 1.0f);
+                //     const float b = clamp(result3[srcIdx + 2], 0.0f, 1.0f);
+                
+                //     result[dstIdx]   = r; 
+                //     result[dstIdx+1] = g;
+                //     result[dstIdx+2] = b;
+                //     result[dstIdx+3] = 1.0f;                    
+            // }  
+            // outChannels = 4;            
+        }
+
+        for (size_t i = 0; i < result_float.size(); i ++) 
+            result.push_back(static_cast<unsigned char>(clamp(result_float[i] * 255, 0.0, 255.0f)));
+
+        flipImageVertically(result, w, h, 4);
     }
     return result;
 }
@@ -187,8 +227,6 @@ std::vector<unsigned char> loadImageLDR(const ImageFileInfo& info)
     stbi_image_free(pixels);        
     return result;    
 }
-
-
 
 bool saveImageLDR(const std::string& a_filename, const std::vector<unsigned char> &a_data,
   int width, int height, int channels)

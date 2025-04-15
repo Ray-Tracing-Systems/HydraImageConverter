@@ -54,6 +54,7 @@ endif()
 set(COMMON_COMPILE_OPTIONS
     -O3
     -Wall
+    -fPIC
     $<$<BOOL:${OpenMP_FOUND}>:${OpenMP_CXX_FLAGS}>
 )
 

@@ -5,8 +5,7 @@ import time
 import threading
 import psutil
 
-sys.path.append(os.path.dirname(__file__))
-import hydra_image_loader.image_loader
+import hydra_image_loader.image_loader as hy_im_conv
 
 
 class ThreadMonitor:
@@ -58,7 +57,7 @@ def test_thread_usage():
         try:
             with ThreadMonitor() as monitor:
                 # Загрузка метаданных
-                info = image_loader.get_image_info(texture_path)
+                info = hy_im_conv.get_image_info(texture_path)
                 print(f"[Load Metadata] Threads: {monitor.max_threads}")
                 print(
                     f"Image info: width={info.width}, height={info.height}, channels={info.channels}"
@@ -71,14 +70,14 @@ def test_thread_usage():
 
                 data = None
                 if file_format == "image4ub":
-                    data = image_loader.loadImage4ub(info.path)
+                    data = hy_im_conv.loadImage4ub(info.path)
                 elif file_format == "image4f":
-                    data = image_loader.loadImage4f(info.path, info.channels)
+                    data = hy_im_conv.image4fToUchar(info.path, info.channels)
 
                 print(f"[Load Data] Threads: {monitor.max_threads}")
 
                 # Сохранение
-                output_name = os.path.splitext(texture_name)[0] + "png"
+                output_name = os.path.splitext(texture_name)[0] + ".png"
                 output_path = os.path.join("python_converted", output_name)  # Отдельная папка
 
                 os.makedirs("python_converted", exist_ok=True)
