@@ -27,8 +27,8 @@ PYBIND11_MODULE(image_loader, m) {
         .def_readonly("path", &ImageFileInfo::path);
 
     // Экспорт функций
-    m.def("get_image_info", &getImageInfo, "Get image metadata");
-    m.def("load_image_4ub", &loadImage4ub, "Load 8-bit image");
-    m.def("image_4f_to_uchar", &image4fToUchar, "Load image4f and convert to 8-bit");
-    m.def("save_image_ldr", &saveImageLDR, "Save LDR image");
+    m.def("getImageInfo", &getImageInfo, "Get image metadata");
+    m.def("loadImage4ub", &loadImage4ub, "Load 8-bit image");
+    m.def("image4fToUchar", &image4fToUchar, "Load image4f and convert to 8-bit");
+    m.def("saveImageLDR", &saveImageLDR, "Save LDR image");
 }

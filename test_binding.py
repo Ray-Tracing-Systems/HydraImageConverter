@@ -57,7 +57,7 @@ def test_thread_usage():
         try:
             with ThreadMonitor() as monitor:
                 # Загрузка метаданных
-                info = hy_im_conv.get_image_info(texture_path)
+                info = hy_im_conv.getImageInfo(texture_path)
                 print(f"[Load Metadata] Threads: {monitor.max_threads}")
                 print(
                     f"Image info: width={info.width}, height={info.height}, channels={info.channels}"
@@ -82,9 +82,7 @@ def test_thread_usage():
 
                 os.makedirs("python_converted", exist_ok=True)
 
-                image_loader.save_image_ldr(
-                    output_path, data, info.width, info.height, info.channels
-                )
+                hy_im_conv.saveImageLDR(output_path, data, info.width, info.height, info.channels)
 
                 print(f"[Save PNG] Threads: {monitor.max_threads}")
                 print(f"Saved: {output_path}")
