@@ -2,12 +2,9 @@ from genericpath import isfile
 import os
 import time
 import threading
-from pathlib import Path
 import psutil
 
 import image_loader
-
-MAX_FILE_SIZE = 1024 * 1024 * 100  # 100 MB
 
 
 class ThreadMonitor:
@@ -36,7 +33,7 @@ class ThreadMonitor:
 
 def test_thread_usage():
     textures_dir = "Textures"
-    supported_input_ext = {"image4ub", "image4f", "exr", "hdr"}  # Только входные форматы
+    supported_input_ext = {"image4ub", "image4f"}  # Только входные форматы
     files = [
         f
         for f in os.listdir(textures_dir)
@@ -48,7 +45,7 @@ def test_thread_usage():
 
     for texture_name in files:
         texture_path = os.path.join(textures_dir, texture_name)
-        file_format = guess_format_from_extension(texture_name)
+        file_format = get_format_from_extension(texture_name)
 
         if file_format == "unknown":
             print(f"Skipping unsupported file: {texture_name}")
@@ -58,12 +55,6 @@ def test_thread_usage():
 
         try:
             with ThreadMonitor() as monitor:
-
-                file_size = os.path.getsize(texture_path)
-                if file_size > MAX_FILE_SIZE:
-                    print(f"File too big: {texture_name} ({file_size} bytes)")
-                    continue
-
                 # Загрузка метаданных
                 info = image_loader.get_image_info(texture_path)
                 print(f"[Load Metadata] Threads: {monitor.max_threads}")
@@ -76,35 +67,25 @@ def test_thread_usage():
                     print(f"Invalid image dimensions/channels: {texture_path}")
                     continue
 
-                # Определяем тип изображения
-                is_hdr = file_format in {"image4f", "exr", "hdr"}
-
-                if is_hdr:
-                    # Загрузка HDR
-                    data = image_loader.load_image_hdr(info)
-                else:
-                    # Загрузка LDR
-                    data = image_loader.load_image_ldr(info)
+                data = None
+                if file_format == "image4ub":
+                    data = image_loader.loadImage4ub(info.path)
+                elif file_format == "image4f":
+                    data = image_loader.loadImage4f(info.path, info.channels)
 
                 print(f"[Load Data] Threads: {monitor.max_threads}")
 
                 # Сохранение
-                output_ext = "png" if not is_hdr else "exr"
-                output_name = os.path.splitext(texture_name)[0] + f".{output_ext}"
-                output_path = os.path.join("Converted", output_name)  # Отдельная папка
+                output_name = os.path.splitext(texture_name)[0] + "png"
+                output_path = os.path.join("python_converted", output_name)  # Отдельная папка
 
-                os.makedirs("Converted", exist_ok=True)
+                os.makedirs("python_converted", exist_ok=True)
 
-                if is_hdr:
-                    image_loader.save_image_hdr(
-                        output_path, data, info.width, info.height, info.channels
-                    )
-                else:
-                    image_loader.save_image_ldr(
-                        output_path, data, info.width, info.height, info.channels
-                    )
+                image_loader.save_image_ldr(
+                    output_path, data, info.width, info.height, info.channels
+                )
 
-                print(f"[Save {output_ext.upper()}] Threads: {monitor.max_threads}")
+                print(f"[Save PNG] Threads: {monitor.max_threads}")
                 print(f"Saved: {output_path}")
                 print(f"Size: {os.path.getsize(output_path)} bytes")
 
@@ -112,12 +93,10 @@ def test_thread_usage():
             print(f"Fatal error: {str(e)}")
 
 
-def guess_format_from_extension(filename):
+def get_format_from_extension(filename):
     """Определяет формат изображения по расширению файла."""
     ext = filename.split(".")[-1].lower()
-    return {"image4ub": "image4ub", "image4f": "image4f", "exr": "exr", "hdr": "hdr"}.get(
-        ext, "unknown"
-    )
+    return {"image4ub": "image4ub", "image4f": "image4f"}.get(ext, "unknown")
 
 
 if __name__ == "__main__":

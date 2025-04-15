@@ -5,13 +5,15 @@
 #include <cerrno>
 #include "image_loader.h"
 
-TEX_FORMAT guessFormatFromExtension(const std::string &filename);
+TEX_FORMAT getFormatFromExtension(const std::string &filename);
 
 namespace fs = std::filesystem;
 
+inline static float clamp(float u, float a, float b) { return std::min(std::max(a, u), b); }
+
 bool hasValidExtension(const fs::path& filePath) {
     const std::string ext = filePath.extension().string();
-    return ext == ".image4ub" || ext == ".image4f" || ext == ".exr" || ext == ".hdr";
+    return ext == ".image4ub" || ext == ".image4f";
 }
 
 std::string findReferenceImage(const std::string& imagePath) {
@@ -37,8 +39,9 @@ bool compareImages(const std::vector<unsigned char>& img1,
     return std::equal(img1.begin(), img1.end(), img2.begin());
 }
 
+
 void processImage(const std::string& inputPath) {
-    std::cerr << "Processing: " << inputPath << std::endl;
+    std::cerr << "\nProcessing: " << inputPath << std::endl;
     fs::path outputPath = inputPath;
     outputPath.replace_extension(".png");
 
@@ -51,51 +54,70 @@ void processImage(const std::string& inputPath) {
     std::cerr << "Dimensions: " << info.width << "x" << info.height 
               << " Channels: " << info.channels << std::endl;
 
-    std::vector<unsigned char> image;
+    std::vector<unsigned char> image_ldr;
     std::vector<float> hdrImage;
     
-    if (guessFormatFromExtension(inputPath) == IMG_IMAGE4F || guessFormatFromExtension(inputPath) == IMG_COMMON_HDR) {
-        hdrImage = loadImageHDR(info);
-        if (hdrImage.empty()) {
-            std::cerr << "Error: Failed to load HDR image data" << std::endl;
-            return;
-        }
-        // Convert HDR to LDR for PNG output
-        image.resize(hdrImage.size());
-        for (size_t i = 0; i < hdrImage.size(); i++) {
-            image[i] = static_cast<unsigned char>(std::min(255.0f, std::max(0.0f, hdrImage[i] * 255.0f)));
-        }
-    } else {
-        image = loadImageLDR(info, true);
-        if (image.empty()) {
+    auto format = getFormatFromExtension(inputPath);
+
+    if (format == IMG_IMAGE4UB)
+    {
+        image_ldr = loadImage4ub(info.path);
+        if (image_ldr.empty()) {
             std::cerr << "Error: Failed to load image data" << std::endl;
             return;
         }
     }
+    else if (format == IMG_IMAGE4F)
+    {
+        hdrImage = loadImage4f(info.path, info.channels);
+        if (hdrImage.empty()) {
+            std::cerr << "Error: Failed to load HDR image data" << std::endl;
+            return;
+        }
 
-    if (!saveImageLDR(outputPath.string(), image, info.width, info.height, info.channels)) {
+        image_ldr.resize(info.width * info.height * 4);
+
+        for (size_t srcIdx = 0, dstIdx = 0; srcIdx < hdrImage.size(); srcIdx += info.channels, dstIdx += 4) 
+        {
+            // RGB → RGBA
+            const float r = clamp(hdrImage[srcIdx], 0.0f, 1.0f);
+            const float g = clamp(hdrImage[srcIdx + 1], 0.0f, 1.0f);
+            const float b = clamp(hdrImage[srcIdx + 2], 0.0f, 1.0f);
+
+            image_ldr[dstIdx]   = static_cast<unsigned char>(r * 255.0f); // R
+            image_ldr[dstIdx+1] = static_cast<unsigned char>(g * 255.0f); // G
+            image_ldr[dstIdx+2] = static_cast<unsigned char>(b * 255.0f); // B
+            image_ldr[dstIdx+3] = 255; // Альфа    
+            info.channels = 4;           
+        }   
+    }
+
+    if (!saveImageLDR(outputPath.string(), image_ldr, info.width, info.height, info.channels)) {
         std::cerr << "Error: Failed to save output image" << std::endl;
         return;
     }
 
+    // Comparative tests
+
     std::string refPath = findReferenceImage(inputPath);
     
-    if (!refPath.empty()) {
+    if (!refPath.empty()) 
+    {
         std::cout << "Found reference image: " << refPath << std::endl;
         auto refInfo = getImageInfo(refPath);
-        if (refInfo.is_ok) {
+        if (refInfo.is_ok)
+        {
             auto refImage = loadImageLDR(refInfo);
-            if (!refImage.empty()) {
-                std::cout << (compareImages(image, refImage) 
-                    ? "match: ok" 
-                    : "match: FAILED") << std::endl;
-            }
+            if (!refImage.empty()) 
+                std::cout << (compareImages(image_ldr, refImage) ? "match: ok" : "match: FAILED") << std::endl;            
         }
-    } else {
+    } 
+    else 
         std::cout << "No reference image found for: " << inputPath << std::endl;
-    }
-    std::cout << std::endl;
 }
+
+
+
 
 int main() {        
     const std::string textureDir = "Textures/";
