@@ -45,7 +45,7 @@
         },
         {
             "name": "Debug Python Bindings",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/test_binding.py",
             "console": "integratedTerminal",
@@ -54,6 +54,17 @@
                 "PYTHONPATH": "${workspaceFolder}/build_python/Debug"
             },
             "preLaunchTask": "Build Python Bindings (Debug)"
-        }
-    ]
-}
+        },
+        {
+            "name": "Release Python Bindings",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/test_binding.py",
+            "console": "integratedTerminal",
+            "pythonPath": "${command:python.interpreterPath}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/build_python/Release"
+            },
+            "preLaunchTask": "Build Python Bindings (Release)"
+        ]
+    }

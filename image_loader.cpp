@@ -109,6 +109,7 @@ ImageFileInfo getImageInfo(const std::string& a_filename)
 
 void flipImageVertically(std::vector<unsigned char>& data, int width, int height, int channels) {    
     const int rowSize = width * channels;    
+    #pragma omp parallel for
     for (int y = 0; y < height/2; y++) {
         unsigned char* top = data.data() + y * rowSize;
         unsigned char* bottom = data.data() + (height - 1 - y) * rowSize;
@@ -198,9 +199,12 @@ std::vector<unsigned char> image4fToUchar(const std::string &filename, int& outC
             // }  
             // outChannels = 4;            
         }
+        
+        result.resize(w * h * 4);
 
+        #pragma omp parallel for
         for (size_t i = 0; i < result_float.size(); i ++) 
-            result.push_back(static_cast<unsigned char>(clamp(result_float[i] * 255, 0.0, 255.0f)));
+            result[i] = static_cast<unsigned char>(clamp(result_float[i] * 255, 0.0, 255.0f));
 
         flipImageVertically(result, w, h, 4);
     }

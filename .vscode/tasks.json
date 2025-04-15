@@ -67,15 +67,5 @@
 			],
 			"detail": "Release build for Python bindings"
 		},
-		// Test Tasks		
-		{
-			"label": "Run Python Tests",
-			"type": "shell",
-			"command": "python3 test_binding.py",
-			"group": "test",
-			"dependsOn": [
-				"Build Python Bindings (Release)"
-			]
-		}
 	]
 }
