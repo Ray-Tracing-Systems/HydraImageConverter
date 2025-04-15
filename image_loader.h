@@ -7,7 +7,6 @@ enum TEX_FORMAT {IMG_IMAGE4UB, IMG_IMAGE4F, IMG_PNG, IMG_OTHER};
 struct ImageFileInfo
 {
   bool is_ok = false;
-  bool is_normal_map = false;
   int width = 0u;
   int height = 0u;
   int channels = 0u;

@@ -58,6 +58,10 @@ def test_thread_usage():
             with ThreadMonitor() as monitor:
                 # Загрузка метаданных
                 info = hy_im_conv.getImageInfo(texture_path)
+                if not info.is_ok:
+                    print(f"Invalid image file: {texture_path}")
+                    return False
+                
                 print(f"[Load Metadata] Threads: {monitor.max_threads}")
                 print(
                     f"Image info: width={info.width}, height={info.height}, channels={info.channels}"

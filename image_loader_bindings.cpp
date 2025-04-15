@@ -24,7 +24,9 @@ PYBIND11_MODULE(image_loader, m) {
         .def_readonly("width", &ImageFileInfo::width)
         .def_readonly("height", &ImageFileInfo::height)
         .def_readonly("channels", &ImageFileInfo::channels)
-        .def_readonly("path", &ImageFileInfo::path);
+        .def_readonly("path", &ImageFileInfo::path)
+        .def_readonly("is_ok", &ImageFileInfo::is_ok);
+      
 
     // Экспорт функций
     m.def("getImageInfo", &getImageInfo, "Get image metadata");
