@@ -82,6 +82,10 @@ def test_thread_usage():
 
                 os.makedirs("python_converted", exist_ok=True)
 
+                if len(data) == 0:
+                    print(f"Skipping empty image: {texture_path}")
+                    continue
+
                 hy_im_conv.saveImageLDR(output_path, data, info.width, info.height, info.channels)
 
                 print(f"[Save PNG] Threads: {monitor.max_threads}")
