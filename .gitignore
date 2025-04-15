@@ -175,4 +175,4 @@ cython_debug/
 
 
 *.png
-
+!image_loader*.so
