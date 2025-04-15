@@ -1,10 +1,12 @@
 from genericpath import isfile
 import os
+import sys
 import time
 import threading
 import psutil
 
-import image_loader
+sys.path.append(os.path.dirname(__file__))
+import hydra_image_loader.image_loader
 
 
 class ThreadMonitor:

@@ -1,46 +1,34 @@
 /*
 image_loader_bindings.cpp (c) 2025
-Desc: description
+Desc: Биндинг с++ методов к питону
 */
 
 #include <../pybind11/include/pybind11/pybind11.h>
 #include <../pybind11/include/pybind11/stl.h>
-#include "image_loader.h"
+
+#include "image_loader.h" // Убедитесь, что путь корректен
 
 namespace py = pybind11;
 
+// Объявление функций из image_loader.h
+extern ImageInfo get_image_info(const std::string& path);
+extern std::vector<uint8_t> loadImage4ub(const std::string& path);
+extern std::vector<float> loadImage4f(const std::string& path, int channels);
+extern void save_image_ldr(const std::string& path, const std::vector<uint8_t>& data, int width, int height, int channels);
+
 PYBIND11_MODULE(image_loader, m) {
-    py::class_<ImageFileInfo>(m, "ImageFileInfo")
-        .def(py::init<>())
-        .def_readwrite("is_ok", &ImageFileInfo::is_ok)
-        .def_readwrite("is_normal_map", &ImageFileInfo::is_normal_map)
-        .def_readwrite("width", &ImageFileInfo::width)
-        .def_readwrite("height", &ImageFileInfo::height)
-        .def_readwrite("channels", &ImageFileInfo::channels)
-        .def_readwrite("bytes_per_channel", &ImageFileInfo::bytesPerChannel)
-        .def_readwrite("path", &ImageFileInfo::path);
+    m.doc() = "HydraImageConverter Python Bindings";
 
-    py::enum_<TEX_FORMAT>(m, "TEX_FORMAT")
-        .value("IMG_IMAGE4UB", TEX_FORMAT::IMG_IMAGE4UB)
-        .value("IMG_IMAGE4F", TEX_FORMAT::IMG_IMAGE4F)
-        .value("IMG_COMMON_LDR", TEX_FORMAT::IMG_COMMON_LDR)
-        .value("IMG_COMMON_HDR", TEX_FORMAT::IMG_COMMON_HDR)
-        .export_values();
+    // Регистрация структуры ImageInfo
+    py::class_<ImageInfo>(m, "ImageInfo")
+        .def_readonly("width", &ImageInfo::width)
+        .def_readonly("height", &ImageInfo::height)
+        .def_readonly("channels", &ImageInfo::channels)
+        .def_readonly("path", &ImageInfo::path);
 
-    m.def("get_image_info", &getImageInfo, "Get image metadata",
-          py::arg("filename"));
-    
-    m.def("load_image_ldr", &loadImageLDR, "Load LDR image data",
-          py::arg("info"));
-    
-    m.def("load_image_hdr", &loadImageHDR, "Load HDR image data",
-          py::arg("info"));
-    
-    m.def("save_image_ldr", &saveImageLDR, "Save LDR image",
-          py::arg("filename"), py::arg("data"),
-          py::arg("width"), py::arg("height"), py::arg("channels"));
-    
-    m.def("save_image_hdr", &saveImageHDR, "Save HDR image",
-          py::arg("filename"), py::arg("data"),
-          py::arg("width"), py::arg("height"), py::arg("channels"));
+    // Экспорт функций
+    m.def("get_image_info", &get_image_info, "Get image metadata");
+    m.def("loadImage4ub", &loadImage4ub, "Load 8-bit image");
+    m.def("loadImage4f", &loadImage4f, "Load float image");
+    m.def("save_image_ldr", &save_image_ldr, "Save LDR image");
 }

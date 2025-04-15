@@ -30,6 +30,14 @@ cmake -B "${BUILD_DIR}" \
 echo "Starting build..."
 if cmake --build "${BUILD_DIR}" -- -j$(nproc); then
     echo "Build successful!"
+    
+    mkdir hydra_image_loader
+    cd hydra_image_loader
+    touch __init__.py
+    
+    cd ../"${BUILD_DIR}"
+    ls -l image_loader.*.so  
+    cp image_loader.*.so ../hydra_image_loader/
 else
     echo "Build failed!" >&2
     exit 1
